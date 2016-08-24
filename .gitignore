@@ -1,6 +1,6 @@
 *.aux
 *.log
-dist/
+dist
 *~
 *.o
 *.hi
