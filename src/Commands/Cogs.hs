@@ -1,20 +1,22 @@
+module Main where
+
 ----------------------------------------------------------------
 --                                                    2016.08.24
 -- |
--- Module      :  Language.Cogs.Syntax.AST
+-- Module      :  Main
 -- Copyright   :  Copyright (c) 2016 Zach Sullivan
 -- License     :  MIT
 -- Maintainer  :  zachsully@gmail.com
 -- Stability   :  experimental
 -- Portability :  GHC-only
 --
--- Main AST for Cogs
+-- Cogs Executable
 --
 ----------------------------------------------------------------
 
-module Language.Cogs.Syntax.AST where
+import System.Environment
 
-data Term
-  = Literal
-  | NaryOp [Term]
-  deriving Show
+main :: IO ()
+main =
+  do (function:_) <- getArgs
+     putStrLn function
