@@ -16,7 +16,35 @@ module Main where
 
 import System.Environment
 
+import Language.Cogs.Evaluation.Simplify
+import Language.Cogs.Evaluation.Evaluate
+
+import Control.Monad.Reader
+import Options.Applicative
+
+data Options =
+ Options { debug    :: Bool
+         , function :: String
+         , input    :: String
+         } deriving Show
+
 main :: IO ()
-main =
-  do (function:_) <- getArgs
-     putStrLn function
+main = parseOpts >>= runReaderT runCogs
+
+options :: Parser Options
+options = Options
+  <$> switch ( long "debug"
+             <> short 'D'
+             <> help "Prints debug information" )
+  <*> strArgument (metavar "FUNCTION" <> help "How to evaluate the program")
+  <*> strArgument (metavar "INPUT" <> help "Input program")
+
+
+
+parseOpts :: IO Options
+parseOpts = execParser $ info (helper <*> options)
+                       $ fullDesc <> progDesc "Cogs compiler"
+
+
+runCogs :: ReaderT Options IO ()
+runCogs = undefined
