@@ -4,16 +4,17 @@ let
 
   inherit (nixpkgs) pkgs;
 
-  f = { mkDerivation, base, mtl, optparse-applicative, stdenv }:
+  f = { mkDerivation, attoparsec, base, mtl, optparse-applicative
+      , stdenv
+      }:
       mkDerivation {
         pname = "cogs";
         version = "0.1.0.0";
         src = ./.;
         isLibrary = true;
         isExecutable = true;
-        libraryHaskellDepends = [ base ];
+        libraryHaskellDepends = [ attoparsec base ];
         executableHaskellDepends = [ base mtl optparse-applicative ];
-        doHaddock = false;
         homepage = "zachsully.com/cogs";
         description = "A language for numeric and symbolic computing";
         license = stdenv.lib.licenses.mit;

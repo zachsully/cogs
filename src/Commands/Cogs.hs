@@ -14,7 +14,7 @@ module Main where
 --
 ----------------------------------------------------------------
 
-import System.Environment
+import System.IO
 
 import Language.Cogs.Evaluation.Simplify
 import Language.Cogs.Evaluation.Evaluate
@@ -24,7 +24,7 @@ import Options.Applicative
 
 data Options =
  Options { debug    :: Bool
-         , function :: String
+         , mode     :: String
          , input    :: String
          } deriving Show
 
@@ -36,15 +36,24 @@ options = Options
   <$> switch ( long "debug"
              <> short 'D'
              <> help "Prints debug information" )
-  <*> strArgument (metavar "FUNCTION" <> help "How to evaluate the program")
+  <*> strArgument (metavar "MODE"
+                  <> help "How to evaluate the program, either 'symbolic' or 'numeric'")
   <*> strArgument (metavar "INPUT" <> help "Input program")
 
 
 
 parseOpts :: IO Options
 parseOpts = execParser $ info (helper <*> options)
-                       $ fullDesc <> progDesc "Cogs compiler"
+                       $ fullDesc <> progDesc "Cogs Compiler"
 
 
 runCogs :: ReaderT Options IO ()
-runCogs = undefined
+runCogs =
+  do opts <- ask
+     lift $ do
+       prog <- readFile $ input opts
+       case mode opts of
+         "symbolic" -> putStrLn prog
+         "numeric"  -> putStrLn prog
+         x          -> hPutStrLn stderr
+                         $ show x ++ " is not a Cogs evaluation mode"
