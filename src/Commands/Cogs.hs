@@ -18,6 +18,8 @@ import System.IO
 
 import Language.Cogs.Evaluation.Simplify
 import Language.Cogs.Evaluation.Evaluate
+import Language.Cogs.Syntax.AST
+import Language.Cogs.Parser
 
 import Control.Monad.Reader
 import Options.Applicative
@@ -51,9 +53,15 @@ runCogs :: ReaderT Options IO ()
 runCogs =
   do opts <- ask
      lift $ do
-       prog <- readFile $ input opts
+       prog <- readFromFile $ input opts
+       let prog' = parseCogs prog
+       when (debug opts) $ putStrLn $ show prog'
        case mode opts of
-         "symbolic" -> putStrLn prog
-         "numeric"  -> putStrLn prog
+         "symbolic" -> putStrLn . show . simplify $ prog'
+         "numeric"  -> putStrLn . show . evaluate $ prog'
          x          -> hPutStrLn stderr
                          $ show x ++ " is not a Cogs evaluation mode"
+
+readFromFile :: String -> IO String
+readFromFile "-" = getContents
+readFromFile x   = readFile x

@@ -17,12 +17,12 @@ module Language.Cogs.Evaluation.Simplify
 
 import Language.Cogs.Syntax.AST
 
-simplify :: (Num a, Eq a) => Expr a -> Expr a
-simplify (Const a)       = Const a
-simplify (Var a)         = Var a
-simplify (Const 0 :+: x) = x
-simplify (x :+: Const 0) = x
-simplify (Const 1 :*: x) = x
-simplify (x :*: Const 1) = x
-simplify (x :/: Const 1) = x
-simplify x               = x
+simplify :: (Num a, Eq a) => Term a -> Term a
+simplify (Literal a)       = Literal a
+simplify (Var a)           = Var a
+simplify (Literal 0 :+: x) = x
+simplify (x :+: Literal 0) = x
+simplify (Literal 1 :*: x) = x
+simplify (x :*: Literal 1) = x
+simplify (x :/: Literal 1) = x
+simplify x                 = x

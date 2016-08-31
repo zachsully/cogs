@@ -13,25 +13,19 @@
 ----------------------------------------------------------------
 
 module Language.Cogs.Syntax.AST
-  ( Term(..)
-  , Expr(..) )
+  ( Term(..) )
   where
 
 data Term a
-  = Literal a
-  | NaryOp [Term a]
-  deriving Show
+  = Var Char
+  | Literal a
+  | (Term a) :+: (Term a)
+  | (Term a) :*: (Term a)
+  | (Term a) :/: (Term a)
+  | (Term a) :^: (Term a)
+  deriving (Show, Eq, Ord)
 
 -- Originally from https://5outh.blogspot.com/2013/05/symbolic-calculus-in-haskell.html
 infix 4 :+:
 infix 5 :*:, :/:
 infix 6 :^:
-
-data Expr a
-  = Var Char
-  | Const a
-  | (Expr a) :+: (Expr a)
-  | (Expr a) :*: (Expr a)
-  | (Expr a) :/: (Expr a)
-  | (Expr a) :^: (Expr a)
-  deriving (Show, Eq, Ord)
