@@ -39,7 +39,7 @@ languageDef =
            , Tok.identStart      = letter
            , Tok.identLetter     = alphaNum
            , Tok.reservedNames   = []
-           , Tok.reservedOpNames = ["+","-","*","/"] }
+           , Tok.reservedOpNames = ["+","-","*","/","^"] }
 
 lexer :: Tok.GenTokenParser String a Identity
 lexer = Tok.makeTokenParser languageDef
@@ -68,16 +68,26 @@ whileParser = whiteSpace >> term
 
 term :: Parser (Term Integer)
 term = try $ parens term
+   <|> try (binaryOp "^" (:^:))
+   <|> try (binaryOp "*" (:*:))
+   <|> try (binaryOp "+" (:+:))
+   <|> try (binaryOp "/" (:/:))
+   <|> try neg
    <|> try literal
 
 literal :: Parser (Term Integer)
-literal = Literal <$> integer
+literal = Lit <$> integer
+
+neg :: Parser (Term Integer)
+neg = reservedOp "-" >> literal >>= return . Neg
 
 
-
--- table :: OperatorTable (Term a)
--- table =
---   [ [ op "*"  ]
---   , []
---   ]
---   where op s f assoc = Infix (string s >> return f) assoc
+binaryOp
+  :: String
+  -> (Term Integer -> Term Integer -> Term Integer)
+  -> Parser (Term Integer)
+binaryOp op syn =
+  do a <- literal
+     reservedOp op
+     b <- term
+     return $ syn a b

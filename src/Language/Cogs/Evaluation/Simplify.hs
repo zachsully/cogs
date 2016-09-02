@@ -18,11 +18,11 @@ module Language.Cogs.Evaluation.Simplify
 import Language.Cogs.Syntax.AST
 
 simplify :: (Num a, Eq a) => Term a -> Term a
-simplify (Literal a)       = Literal a
-simplify (Var a)           = Var a
-simplify (Literal 0 :+: x) = x
-simplify (x :+: Literal 0) = x
-simplify (Literal 1 :*: x) = x
-simplify (x :*: Literal 1) = x
-simplify (x :/: Literal 1) = x
-simplify x                 = x
+simplify (Lit a)       = Lit a
+simplify (Var a)       = Var a
+simplify (Lit 0 :+: x) = simplify x
+simplify (x :+: Lit 0) = simplify x
+simplify (Lit 1 :*: x) = simplify x
+simplify (x :*: Lit 1) = simplify x
+simplify (x :/: Lit 1) = simplify x
+simplify x             = simplify x

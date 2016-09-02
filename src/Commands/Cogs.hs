@@ -28,6 +28,7 @@ data Options =
  Options { debug    :: Bool
          , mode     :: String
          , input    :: String
+         , output   :: Maybe String
          } deriving Show
 
 main :: IO ()
@@ -41,6 +42,7 @@ options = Options
   <*> strArgument (metavar "MODE"
                   <> help "How to evaluate the program, either 'symbolic' or 'numeric'")
   <*> strArgument (metavar "INPUT" <> help "Input program")
+  <*> (optional $ strOption (short 'o' <> metavar "OUTPUT" <> help "output FILE"))
 
 
 
@@ -55,13 +57,20 @@ runCogs =
      lift $ do
        prog <- readFromFile $ input opts
        let prog' = parseCogs prog
+           out   = case output opts of
+                     Nothing -> "-"
+                     Just x  -> x
        when (debug opts) $ putStrLn $ show prog'
        case mode opts of
-         "symbolic" -> putStrLn . show . simplify $ prog'
-         "numeric"  -> putStrLn . show . evaluate $ prog'
+         "symbolic" -> writeToFile out . show . simplify $ prog'
+         "numeric"  -> writeToFile out . show . evaluate $ prog'
          x          -> hPutStrLn stderr
                          $ show x ++ " is not a Cogs evaluation mode"
 
 readFromFile :: String -> IO String
 readFromFile "-" = getContents
 readFromFile x   = readFile x
+
+writeToFile :: String -> String -> IO ()
+writeToFile "-" = putStrLn
+writeToFile x   = writeFile x
