@@ -23,7 +23,8 @@ library
                        Language.Cogs.Parser,
                        Language.Cogs.Pretty,
                        Language.Cogs.Syntax.AST,
-                       Language.Cogs.Types.DataKind
+                       Language.Cogs.Types.DataKind,
+                       Language.Sequent.Core.Syntax.AST
 
   build-depends:       base       >= 4.8,
                        bytestring >= 0.10,
