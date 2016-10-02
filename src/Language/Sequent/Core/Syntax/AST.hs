@@ -8,8 +8,13 @@ data Kind
 newtype TyVar = TyVar String
   deriving (Show,Eq)
 
-data Type
-  = TypVar TyVar
+data Type c
+  = TVar TyVar
+  | Concrete c
+  | Forall TyVar Kind (Type c)
+  | Exists TyVar Kind (Type c)
+  -- concrete type
+  -- sigma?
   deriving (Show,Eq)
 
 newtype Var = Var String
@@ -18,39 +23,39 @@ newtype Var = Var String
 newtype Label = Label String
   deriving (Show,Eq)
 
-newtype Program = Program Bind
+newtype Program c = Program (Bind c)
   deriving (Show,Eq)
 
-data Bind
-  = BBindPair BindPair
-  | BRec [BindPair]
+data Bind c
+  = BBindPair (BindPair c)
+  | BRec [BindPair c]
   deriving (Show,Eq)
 
-data BindPair
-  = BPBind Var Type Term
+data BindPair c
+  = BPBind Var (Type c) (Term c)
   --here
   deriving (Show,Eq)
 
-data Term
-  = Lambda Var Type Term
-  | BigLambda TyVar Kind Term
-  | TVar Var
+data Term c
+  = Lambda Var (Type c) (Term c)
+  | BigLambda TyVar Kind (Term c)
+  -- | TVar Var
   -- more
   deriving (Show,Eq)
 
-data Command
-  = C Term Kont
-  | Let Bind Command
+data Command c
+  = C (Term c) (Kont c)
+  | Let (Bind c) (Command c)
   deriving (Show,Eq)
 
-data Kont
-  = KTerm Term Kont
-  | KType Type Kont
-  | Case Alt
+data Kont c
+  = KTerm (Term c) (Kont c)
+  | KType (Type c) (Kont c)
+  | Case (Alt c)
   | Ret
   deriving (Show,Eq)
 
-data Alt
-  = ACase Var Type Command
+data Alt c
+  = ACase Var (Type c) (Command c)
   -- something
   deriving (Show,Eq)

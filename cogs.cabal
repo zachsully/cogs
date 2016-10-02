@@ -24,7 +24,8 @@ library
                        Language.Cogs.Pretty,
                        Language.Cogs.Syntax.AST,
                        Language.Cogs.Types.DataKind,
-                       Language.Sequent.Core.Syntax.AST
+                       Language.Sequent.Core.Syntax.AST,
+                       Language.Sequent.Core.Evaluation.Interpret
 
   build-depends:       base       >= 4.8,
                        bytestring >= 0.10,
