@@ -24,12 +24,13 @@ library
                        Language.Cogs.Pretty,
                        Language.Cogs.Syntax.AST,
                        Language.Cogs.Types.DataKind,
-                       Language.Sequent.Core.Syntax.AST,
-                       Language.Sequent.Core.Evaluation.Interpret
+                       Language.SequentCore.Syntax.AST,
+                       Language.SequentCore.Evaluation.Interpret
 
   build-depends:       base       >= 4.8,
                        bytestring >= 0.10,
                        parsec     >= 3.1,
+                       semigroups >= 0.1,
                        text       >= 1.2
 
   hs-source-dirs:      src

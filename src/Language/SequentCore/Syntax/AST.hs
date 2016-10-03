@@ -1,4 +1,6 @@
-module Language.Sequent.Core.Syntax.AST where
+module Language.SequentCore.Syntax.AST where
+
+import Data.List.NonEmpty
 
 data Kind
   = Star
@@ -26,9 +28,7 @@ newtype Label = Label String
 newtype Program c = Program (Bind c)
   deriving (Show,Eq)
 
-data Bind c
-  = BBindPair (BindPair c)
-  | BRec [BindPair c]
+data Bind c = BindPair (NonEmpty (BindPair c))
   deriving (Show,Eq)
 
 data BindPair c
