@@ -8,8 +8,8 @@ interpret :: Program a -> a
 interpret (Program b) = interpBind b
 
 interpBind :: Bind a -> a
-interpBind (BBindPair bp) = interpBindPair bp
+interpBind (BBindPair bp) = undefined
 interpBind (BRec bps) = undefined
 
-interpBindPair :: BindPair a -> a
-interpBindPair () = undefined
+-- interpBindPair :: BindPair a -> a
+-- interpBindPair () = undefined

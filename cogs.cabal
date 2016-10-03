@@ -25,7 +25,9 @@ library
                        Language.Cogs.Syntax.AST,
                        Language.Cogs.Types.DataKind,
                        Language.Sequent.Core.Syntax.AST,
-                       Language.Sequent.Core.Evaluation.Interpret
+                       Language.Sequent.Core.Evaluation.Interpret,
+                       Language.Sequent.Untyped.Syntax.AST,
+                       Language.Sequent.Untyped.Evaluation.Interpret
 
   build-depends:       base       >= 4.8,
                        bytestring >= 0.10,
