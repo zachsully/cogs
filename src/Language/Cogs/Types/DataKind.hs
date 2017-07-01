@@ -20,7 +20,5 @@ data Cogs
   | CInteger
   | CReal
   | CComplex
-
-  -- function typ
   | Cogs :-> Cogs
   deriving (Show, Eq, Ord)
