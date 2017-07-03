@@ -23,7 +23,8 @@ import Cogs.Language.SystemT.Parser
 
 import Control.Monad.Reader
 import Data.Monoid
-import qualified Data.ByteString.Char8 as BS
+import qualified Data.Text    as T
+import qualified Data.Text.IO as TIO
 import Options.Applicative
 
 data Options =
@@ -58,15 +59,15 @@ runCogs =
                       Left err -> putStrLn . show $ err
                       Right prog' -> do
                         when (debug opts) $
-                          BS.putStrLn prog
-                        BS.putStrLn . BS.pack . show $ prog'
-                        BS.putStrLn . BS.pack . show . evalClosedTerm $ prog'
+                          TIO.putStrLn prog
+                        TIO.putStrLn . T.pack . show $ prog'
+                        TIO.putStrLn . T.pack . show . evalClosedTerm $ prog'
       _ -> return ()
 
-readFromFile :: FilePath -> IO BS.ByteString
-readFromFile "-" = BS.getContents
-readFromFile fp  = BS.readFile fp
+readFromFile :: FilePath -> IO T.Text
+readFromFile "-" = TIO.getContents
+readFromFile fp  = TIO.readFile fp
 
-writeToFile :: FilePath -> BS.ByteString -> IO ()
-writeToFile "-" = BS.putStrLn
-writeToFile fp  = BS.writeFile fp
+writeToFile :: FilePath -> T.Text -> IO ()
+writeToFile "-" = TIO.putStrLn
+writeToFile fp  = TIO.writeFile fp

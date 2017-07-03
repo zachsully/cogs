@@ -1,21 +1,21 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Cogs.Language.SystemT.SystemT where
 
-import Prelude          hiding (pred,sum)
-import Data.ByteString         (ByteString(..),unpack)
+import Prelude   hiding (pred,sum)
+import Data.Text hiding (foldr,replicate)
 
 data Term
-  = Var ByteString
+  = Var Text
   | Zero
   | Succ Term
-  | Lam ByteString Term
+  | Lam Text Term
   | App Term Term
   | Rec Term Term Term
   deriving Show
 
 data Val
   = Nat Term
-  | Closure ByteString Term Env
+  | Closure Text Term Env
   deriving Show
 
 prettyVal :: Val -> String
@@ -23,10 +23,10 @@ prettyVal (Nat x) = show $ go x
   where go Zero     = 0
         go (Succ z) = 1 + (go z)
 
-data Env = Env [(ByteString,Term,Env)]
+data Env = Env [(Text,Term,Env)]
   deriving Show
 
-lookupEnv :: ByteString -> Env -> (Term,Env)
+lookupEnv :: Text -> Env -> (Term,Env)
 lookupEnv s (Env []) = error $ "unbound var: " ++ show s
 lookupEnv s (Env ((s',x,e'):rest)) = case s == s' of
                                        True -> (x,e')
