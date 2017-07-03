@@ -1,6 +1,6 @@
 name:                cogs
 version:             0.1.0.0
-synopsis:            A language for numeric and symbolic computing
+synopsis:            A set of compilers for a set of languages
 -- description:
 homepage:            zachsully.com/cogs
 license:             MIT
@@ -14,26 +14,28 @@ cabal-version:       >=1.10
 
 library
   GHC-Options :       -Wall -j6
-  exposed-modules:     Data.Number.Natural,
-                       Data.Number.Rational,
-                       Data.Number.Real,
-                       Data.Number.Complex,
-                       Language.Cogs.Evaluation.Evaluate,
-                       Language.Cogs.Evaluation.Simplify,
-                       Language.Cogs.Parser,
-                       Language.Cogs.Pretty,
-                       Language.Cogs.Syntax.AST,
-                       Language.Cogs.Types.DataKind,
-                       Language.Sequent.Core.Syntax.AST,
-                       Language.Sequent.Core.Evaluation.Interpret,
-                       Language.Sequent.Untyped.Syntax.AST,
-                       Language.Sequent.Untyped.Evaluation.Interpret,
-                       Language.SystemT.SystemT
+  exposed-modules:
+                       -- Data.Number.Natural,
+                       -- Data.Number.Rational,
+                       -- Data.Number.Real,
+                       -- Data.Number.Complex,
+                       -- Language.Cogs.Evaluation.Evaluate,
+                       -- Language.Cogs.Evaluation.Simplify,
+                       -- Language.Cogs.Parser,
+                       -- Language.Cogs.Pretty,
+                       -- Language.Cogs.Syntax.AST,
+                       -- Language.Cogs.Types.DataKind,
+                       -- Language.Sequent.Core.Syntax.AST,
+                       -- Language.Sequent.Core.Evaluation.Interpret,
+                       -- Language.Sequent.Untyped.Syntax.AST,
+                       -- Language.Sequent.Untyped.Evaluation.Interpret,
+                       Cogs.Preprocessor,
+                       Cogs.Language.SystemT.SystemT,
+                       Cogs.Language.SystemT.Parser
 
-  build-depends:       base       >= 4.8,
-                       bytestring >= 0.10,
-                       parsec     >= 3.1,
-                       text       >= 1.2
+  build-depends:       base                 >= 4.8,
+                       parsec               >= 3.1,
+                       bytestring           >= 0.1
 
   hs-source-dirs:      src
   default-language:    Haskell2010
@@ -45,6 +47,7 @@ executable cogs
   build-depends:       base                 >= 4.8,
                        cogs                 >= 0.1,
                        mtl                  >= 2.1,
-                       optparse-applicative >= 0.11 && < 0.13
+                       optparse-applicative >= 0.11,
+                       bytestring           >= 0.1
 
   default-language:    Haskell2010

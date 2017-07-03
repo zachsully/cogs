@@ -1,19 +1,21 @@
-module Language.SystemT where
+{-# LANGUAGE OverloadedStrings #-}
+module Cogs.Language.SystemT.SystemT where
 
-import Prelude hiding (pred,sum)
+import Prelude          hiding (pred,sum)
+import Data.ByteString         (ByteString(..),unpack)
 
-data Expr
-  = Var String
+data Term
+  = Var ByteString
   | Zero
-  | Succ Expr
-  | Lam String Expr
-  | App Expr Expr
-  | Rec Expr Expr Expr
+  | Succ Term
+  | Lam ByteString Term
+  | App Term Term
+  | Rec Term Term Term
   deriving Show
 
 data Val
-  = Nat Expr
-  | Closure String Expr Env
+  = Nat Term
+  | Closure ByteString Term Env
   deriving Show
 
 prettyVal :: Val -> String
@@ -21,10 +23,11 @@ prettyVal (Nat x) = show $ go x
   where go Zero     = 0
         go (Succ z) = 1 + (go z)
 
-data Env = Env [(String,Expr,Env)]
+data Env = Env [(ByteString,Term,Env)]
   deriving Show
 
-lookupEnv s (Env []) = error $ "unbound var: " ++ s
+lookupEnv :: ByteString -> Env -> (Term,Env)
+lookupEnv s (Env []) = error $ "unbound var: " ++ show s
 lookupEnv s (Env ((s',x,e'):rest)) = case s == s' of
                                        True -> (x,e')
                                        False -> lookupEnv s (Env rest)
@@ -37,7 +40,7 @@ extendEnv s x e (Env e') = Env ((s,x,e):e')
 
 evalClosedTerm = eval (Env [])
 
-eval :: Env -> Expr -> Val
+eval :: Env -> Term -> Val
 eval e (Var s)        = case lookupEnv s e of
                           (x,e') -> eval e' x
 eval _ Zero           = Nat Zero
