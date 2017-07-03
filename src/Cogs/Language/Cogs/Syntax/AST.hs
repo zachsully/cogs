@@ -36,6 +36,11 @@ data Term a
   | Prod [a]
   deriving (Show, Eq, Ord)
 
-
+data Expr a
+  = Lit a
+  | Lam (Expr a)
+  | App (Expr a) (Expr a)
+  deriving Show
+  -- (Lam x) (Lit 6)
 
 -- Originally from https://5outh.blogspot.com/2013/05/symbolic-calculus-in-haskell.html
