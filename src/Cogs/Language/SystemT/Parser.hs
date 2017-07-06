@@ -1,52 +1,18 @@
 module Cogs.Language.SystemT.Parser where
 
-import Cogs.Language.SystemT.SystemT
+import Cogs.LanguageDef
+import Cogs.Language.SystemT.Syntax
 
 import Data.Text hiding (unwords,foldr,replicate)
+import Text.Parsec
 import Text.Parsec.Text
 import Text.Parsec.Char
 import Text.Parsec.Error
 import Text.Parsec.Prim
-import qualified Text.Parsec.Token as Tok
 import Prelude hiding (elem)
-import Control.Monad.Identity
 
 parseProg :: Text -> Either ParseError Term
 parseProg = parse pTerm ""
-
-syntaxDef :: Tok.GenLanguageDef Text () Identity
-syntaxDef
-  = Tok.LanguageDef
-  { Tok.commentStart    = "(-"
-  , Tok.commentEnd      = "-)"
-  , Tok.commentLine     = "--"
-  , Tok.nestedComments  = True
-  , Tok.identStart      = letter
-  , Tok.identLetter     = letter
-  , Tok.opStart         = oneOf ""
-  , Tok.opLetter        = oneOf ""
-  , Tok.reservedNames   = ["nat","λ",":",".","→","rec"]
-  , Tok.reservedOpNames = []
-  , Tok.caseSensitive   = True
-  }
-
-lexer :: Tok.GenTokenParser Text () Identity
-lexer = Tok.makeTokenParser syntaxDef
-
-whiteSpace :: Parser ()
-whiteSpace = Tok.whiteSpace lexer
-
-parens :: Parser a -> Parser a
-parens = Tok.parens lexer
-
-reserved :: String -> Parser ()
-reserved = Tok.reserved lexer
-
-identifier :: Parser String
-identifier = Tok.identifier lexer
-
-natural :: Parser Integer
-natural = Tok.natural lexer
 
 pType :: Parser Type
 pType =
@@ -60,49 +26,57 @@ pType =
 
 pTerm :: Parser Term
 pTerm =
-  try (parens pTerm)
-  <|> pNat
-  <|> pVar
-  <?> "term"
-  -- <|> pLam
+  chainl1 (whiteSpace' >>
+            ( try pNat
+              <|> pVar
+              <|> pLam
+              <|> (parens pTerm)
+              <?> "term"
+            )
+          )
+          (return App)
+
   -- <|> pRec
   -- <|> pApp
 
 pVar :: Parser Term
-pVar = Var . pack <$> identifier
+pVar = (Var . pack <$> identifier) <?> "var"
 
 pNat :: Parser Term
 pNat = do
-  whiteSpace
   n <- fromIntegral <$> natural
   case n >= 0 of
     True  -> return $ foldr (\s p -> s p) Zero (replicate n Succ)
     False -> parserFail . unwords $ ["constant",show n,"isn't a natural."]
 
 pLam :: Parser Term
-pLam = do
-  reserved "λ"
-  (Var v) <- pVar
-  whiteSpace
-  reserved ":"
-  whiteSpace
-  ty <- pType
-  reserved "."
-  whiteSpace
-  t <- pTerm
-  return (Lam v ty t)
+pLam =
+  do { reserved "λ"
+     ; (Var v) <- pVar
+     ; whiteSpace'
+     ; reserved ":"
+     ; whiteSpace'
+     ; ty <- pType
+     ; whiteSpace'
+     ; reserved "."
+     ; whiteSpace'
+     ; t <- pTerm
+     ; return (Lam v ty t) }
+  <?> "lam"
 
 pApp :: Parser Term
 pApp = do
   t1 <- pTerm
-  _ <- many (char ' ')
+  whiteSpace'
   t2 <- pTerm
   return (App t1 t2)
 
 pRec :: Parser Term
 pRec = do
-  _ <- string "rec"
+  reserved "rec"
+  whiteSpace
   t1 <- pTerm
+  whiteSpace
   _ <- string "of"
   t2 <- pTerm
   _ <- char '|'

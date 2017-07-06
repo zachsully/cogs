@@ -19,8 +19,9 @@ import System.IO
 
 import Cogs.Preprocessor
 import Cogs.Language.SystemT.Pretty
-import Cogs.Language.SystemT.SystemT
 import Cogs.Language.SystemT.Parser
+import Cogs.Language.SystemT.TypeCheck
+import Cogs.Language.SystemT.Evaluate
 
 import Control.Monad.Reader
 import Data.Monoid
@@ -64,6 +65,7 @@ runCogs =
                       Right prog' -> do
                         when (debug opts) $
                           TIO.putStrLn prog
+                        TIO.putStr "· ̌̌⊢ "
                         TIO.putStr . ppParens . ppTerm $ prog'
                         TIO.putStrLn $ " : "
                                     <> (ppType . checkClosedTerm $ prog')

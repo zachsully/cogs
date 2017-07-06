@@ -31,10 +31,11 @@ library
                        -- Language.Sequent.Untyped.Evaluation.Interpret,
                        Cogs.Preprocessor,
                        Cogs.LanguageDef,
-                       Cogs.Language.SystemT.SystemT,
+                       Cogs.Language.SystemT.Syntax,
                        Cogs.Language.SystemT.Pretty,
-                       Cogs.Language.SystemT.Parser
-
+                       Cogs.Language.SystemT.Parser,
+                       Cogs.Language.SystemT.TypeCheck,
+                       Cogs.Language.SystemT.Evaluate
 
   build-depends:       base                 >= 4.8,
                        parsec               >= 3.1,
