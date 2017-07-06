@@ -1,6 +1,6 @@
 module Cogs.Language.SystemT.Parser where
 
-import Cogs.LanguageDef
+import Cogs.Common
 import Cogs.Language.SystemT.Syntax
 
 import Data.Text hiding (unwords,foldr,replicate)

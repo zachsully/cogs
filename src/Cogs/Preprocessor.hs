@@ -7,7 +7,7 @@ import Text.Parsec.Text
 import Text.Parsec.Prim
 import System.IO
 
-data Language
+data LanguageTag
   = SystemT      -- ^ simply typed lambda calculus with primitive recursion
   | PCF          -- ^ programming computable functions
   -- LAMBDA CUBE --
@@ -20,7 +20,7 @@ data Language
   | CoC1         -- ^ dependently typed lambda calculus with type operators
   | CoC          -- ^ calculus of constructions
 
-instance Show Language where
+instance Show LanguageTag where
   show SystemT      = "λρ"
   show PCF          = "pcf"
   show STLC         = "λ"
@@ -32,7 +32,7 @@ instance Show Language where
   show CoC1         = "λΠω"
   show CoC          = "λΠω2"
 
-getLang :: FilePath -> IO Language
+getLang :: FilePath -> IO LanguageTag
 getLang fp =
   withFile fp ReadMode $ \h ->
   T.hGetLine h >>= \l ->
@@ -47,7 +47,7 @@ pPragma s = do
   _ <- string " #-)"
   return ()
 
-pLanguage :: Parser Language
+pLanguage :: Parser LanguageTag
 pLanguage =
   try (const SystemT      <$> pPragma "λρ")
   <|> (const PCF          <$> pPragma "pcf")

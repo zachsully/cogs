@@ -1,75 +1,40 @@
+{-# LANGUAGE DataKinds,
+             GADTs,
+             RankNTypes #-}
 module Cogs.LanguageDef where
 
-import Control.Monad.Identity
-import Data.Text
-import Text.Parsec.Char
-import Text.Parsec.Prim
-import Text.Parsec.Text
-import qualified Text.Parsec.Token as Tok
+import qualified Cogs.Language.SystemT.Pretty    as SyST
+import qualified Cogs.Language.SystemT.Parser    as SyST
+import qualified Cogs.Language.SystemT.TypeCheck as SyST
+import qualified Cogs.Language.SystemT.Syntax    as SyST
+import qualified Cogs.Language.SystemT.Evaluate  as SyST
 
---------------------------------------------------------------------------------
---                                 PARSING                                    --
---------------------------------------------------------------------------------
+import Data.Text (Text)
 
-class Parseable t where
-  parseTerm :: Text -> t
-
-syntaxDef :: Tok.GenLanguageDef Text () Identity
-syntaxDef
-  = Tok.LanguageDef
-  { Tok.commentStart    = "(-"
-  , Tok.commentEnd      = "-)"
-  , Tok.commentLine     = "--"
-  , Tok.nestedComments  = True
-  , Tok.identStart      = letter
-  , Tok.identLetter     = letter
-  , Tok.opStart         = oneOf ""
-  , Tok.opLetter        = oneOf ""
-  , Tok.reservedNames   = ["nat","λ","Λ","μ","#","*",":",".","→","rec"]
-  , Tok.reservedOpNames = []
-  , Tok.caseSensitive   = True
+data Language syn
+  = Language
+  { parseLang  :: Text -> syn
+  , prettyLang :: syn -> Text
+  , checkLang  :: syn -> syn
+  , evalLang   :: syn -> syn
   }
 
-lexer :: Tok.GenTokenParser Text () Identity
-lexer = Tok.makeTokenParser syntaxDef
-
-whiteSpace :: Parser ()
-whiteSpace = Tok.whiteSpace lexer
-
-whiteSpace' :: Parser ()
-whiteSpace' = whiteSpace <|> return ()
-
-
-parens :: Parser a -> Parser a
-parens = Tok.parens lexer
-
-reserved :: String -> Parser ()
-reserved = Tok.reserved lexer
-
-identifier :: Parser String
-identifier = Tok.identifier lexer
-
-natural :: Parser Integer
-natural = Tok.natural lexer
-
---------------------------------------------------------------------------------
---                             PRETTY PRINTING                                --
---------------------------------------------------------------------------------
-
-class Pretty t where
-  pretty :: t -> Text
-
-
---------------------------------------------------------------------------------
---                              TYPE CHECKING                                 --
---------------------------------------------------------------------------------
-
-class (Pretty t) => Check t where
-  checkClosedTerm :: t -> t
-
---------------------------------------------------------------------------------
---                               EVALUATION                                   --
---------------------------------------------------------------------------------
-
-class (Pretty t) => Eval t where
-  evalClosedTerm :: t -> t
+systemT :: Language (Either SyST.Type (Either SyST.Term SyST.Val))
+systemT
+  = Language
+  { parseLang = \p -> case SyST.parseProg p of
+                        Left t -> error $ show t
+                        Right p' -> Right (Left p')
+  , prettyLang = \p -> case p of
+                         Left ty -> SyST.ppType ty
+                         Right (Left t) -> SyST.ppTerm t
+                         Right (Right v) -> SyST.ppVal v
+  , checkLang  = \p -> case p of
+                         Left _ -> p
+                         Right (Left t) -> Left (SyST.checkClosedTerm t)
+                         Right (Right _) -> p
+  , evalLang   = \p -> case p of
+                         Left _ -> p
+                         Right (Left t) -> Right . Right $ SyST.evalClosedTerm t
+                         Right (Right _) -> p
+  }

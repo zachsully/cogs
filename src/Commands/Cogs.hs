@@ -18,10 +18,7 @@ module Main where
 import System.IO
 
 import Cogs.Preprocessor
-import Cogs.Language.SystemT.Pretty
-import Cogs.Language.SystemT.Parser
-import Cogs.Language.SystemT.TypeCheck
-import Cogs.Language.SystemT.Evaluate
+import Cogs.LanguageDef
 
 import Control.Monad.Reader
 import Data.Monoid
@@ -55,22 +52,23 @@ parseOpts = execParser $ info (helper <*> options)
 runCogs :: ReaderT Options IO ()
 runCogs =
   ask >>= \opts ->
-  lift $ do
-    lang <- getLang (input opts)
-    putStrLn $ "In " ++ show lang ++ ","
-    case lang of
-      SystemT -> do prog <- readFromFile $ input opts
-                    case parseProg prog of
-                      Left err -> putStrLn . show $ err
-                      Right prog' -> do
-                        when (debug opts) $
-                          TIO.putStrLn prog
-                        TIO.putStr "· ̌̌⊢ "
-                        TIO.putStr . ppParens . ppTerm $ prog'
-                        TIO.putStrLn $ " : "
-                                    <> (ppType . checkClosedTerm $ prog')
-                        TIO.putStrLn . ppVal . evalClosedTerm $ prog'
-      _ -> error $ "unimplemented langauge: " ++ show lang
+  do lang <- lift (getLang (input opts))
+     lift $ putStrLn $ "In " ++ show lang ++ ","
+     case lang of
+       SystemT -> runLanguage systemT
+       _ -> error $ "unimplemented langauge: " ++ show lang
+
+runLanguage :: Language syn -> ReaderT Options IO ()
+runLanguage lang =
+  ask >>= \opts -> lift $ do
+    prog <- readFromFile $ input opts
+    when (debug opts) $ TIO.putStrLn prog
+    let prog' = parseLang lang prog
+    TIO.putStr "· ̌̌⊢ "
+    TIO.putStr . (prettyLang lang) $ prog'
+    TIO.putStrLn $ " : "
+                <> ((prettyLang lang) . (checkLang lang) $ prog')
+    TIO.putStrLn . (prettyLang lang) . (evalLang lang) $ prog'
 
 readFromFile :: FilePath -> IO T.Text
 readFromFile "-" = TIO.getContents

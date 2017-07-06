@@ -29,6 +29,7 @@ library
                        -- Language.Sequent.Core.Evaluation.Interpret,
                        -- Language.Sequent.Untyped.Syntax.AST,
                        -- Language.Sequent.Untyped.Evaluation.Interpret,
+                       Cogs.Common,
                        Cogs.Preprocessor,
                        Cogs.LanguageDef,
                        Cogs.Language.SystemT.Syntax,
