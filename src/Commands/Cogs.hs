@@ -70,7 +70,7 @@ runCogs =
                         TIO.putStrLn $ " : "
                                     <> (ppType . checkClosedTerm $ prog')
                         TIO.putStrLn . ppVal . evalClosedTerm $ prog'
-      _ -> return ()
+      _ -> error $ "unimplemented langauge: " ++ show lang
 
 readFromFile :: FilePath -> IO T.Text
 readFromFile "-" = TIO.getContents

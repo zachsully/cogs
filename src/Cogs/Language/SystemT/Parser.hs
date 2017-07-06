@@ -6,9 +6,6 @@ import Cogs.Language.SystemT.Syntax
 import Data.Text hiding (unwords,foldr,replicate)
 import Text.Parsec
 import Text.Parsec.Text
-import Text.Parsec.Char
-import Text.Parsec.Error
-import Text.Parsec.Prim
 import Prelude hiding (elem)
 
 parseProg :: Text -> Either ParseError Term

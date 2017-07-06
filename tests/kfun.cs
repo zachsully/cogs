@@ -1,3 +1,3 @@
-(- system f omega -)
-foo = (Λx:#. λy:nat. y) nat
+(-# λω2 #-)
+foo = (Λx:#.λy:nat. y) nat
 foo 42

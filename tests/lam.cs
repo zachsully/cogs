@@ -1,2 +1,2 @@
-%system t
-λx. x
+(-# λ #-)
+λx:nat. x

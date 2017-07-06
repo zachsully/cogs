@@ -1,2 +1,0 @@
-#system t
-λx. x
