@@ -22,7 +22,7 @@ syntaxDef
   , Tok.identLetter     = letter
   , Tok.opStart         = oneOf ""
   , Tok.opLetter        = oneOf ""
-  , Tok.reservedNames   = ["nat","λ","Λ","μ","#","*",":",".","→","rec"]
+  , Tok.reservedNames   = ["nat","λ","Λ","∀","∃","μ","#","*",":",".","→","rec"]
   , Tok.reservedOpNames = []
   , Tok.caseSensitive   = True
   }

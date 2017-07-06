@@ -15,28 +15,21 @@ cabal-version:       >=1.10
 library
   GHC-Options :       -Wall -j6
   exposed-modules:
-                       -- Data.Number.Natural,
-                       -- Data.Number.Rational,
-                       -- Data.Number.Real,
-                       -- Data.Number.Complex,
-                       -- Language.Cogs.Evaluation.Evaluate,
-                       -- Language.Cogs.Evaluation.Simplify,
-                       -- Language.Cogs.Parser,
-                       -- Language.Cogs.Pretty,
-                       -- Language.Cogs.Syntax.AST,
-                       -- Language.Cogs.Types.DataKind,
-                       -- Language.Sequent.Core.Syntax.AST,
-                       -- Language.Sequent.Core.Evaluation.Interpret,
-                       -- Language.Sequent.Untyped.Syntax.AST,
-                       -- Language.Sequent.Untyped.Evaluation.Interpret,
                        Cogs.Common,
                        Cogs.Preprocessor,
                        Cogs.LanguageDef,
+
                        Cogs.Language.SystemT.Syntax,
                        Cogs.Language.SystemT.Pretty,
                        Cogs.Language.SystemT.Parser,
                        Cogs.Language.SystemT.TypeCheck,
-                       Cogs.Language.SystemT.Evaluate
+                       Cogs.Language.SystemT.Evaluate,
+
+                       Cogs.Language.SystemF.Syntax,
+                       Cogs.Language.SystemF.Pretty,
+                       Cogs.Language.SystemF.Parser,
+                       Cogs.Language.SystemF.TypeCheck,
+                       Cogs.Language.SystemF.Evaluate
 
   build-depends:       base                 >= 4.8,
                        parsec               >= 3.1,
