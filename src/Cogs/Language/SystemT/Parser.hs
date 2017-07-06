@@ -36,9 +36,6 @@ pTerm =
           )
           (return App)
 
-  -- <|> pRec
-  -- <|> pApp
-
 pVar :: Parser Term
 pVar = (Var . pack <$> identifier) <?> "var"
 
