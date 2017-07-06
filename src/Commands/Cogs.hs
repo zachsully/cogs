@@ -18,6 +18,7 @@ module Main where
 import System.IO
 
 import Cogs.Preprocessor
+import Cogs.Language.SystemT.Pretty
 import Cogs.Language.SystemT.SystemT
 import Cogs.Language.SystemT.Parser
 
@@ -42,7 +43,9 @@ options = Options
              <> short 'D'
              <> help "Prints debug information" )
   <*> strArgument (metavar "INPUT" <> help "Input program")
-  <*> (optional $ strOption (short 'o' <> metavar "OUTPUT" <> help "output FILE"))
+  <*> (optional $ strOption (  short 'o'
+                            <> metavar "OUTPUT"
+                            <> help "output FILE"))
 
 parseOpts :: IO Options
 parseOpts = execParser $ info (helper <*> options)
@@ -53,6 +56,7 @@ runCogs =
   ask >>= \opts ->
   lift $ do
     lang <- getLang (input opts)
+    putStrLn $ "In " ++ show lang ++ ","
     case lang of
       SystemT -> do prog <- readFromFile $ input opts
                     case parseProg prog of
@@ -60,8 +64,10 @@ runCogs =
                       Right prog' -> do
                         when (debug opts) $
                           TIO.putStrLn prog
-                        TIO.putStrLn . T.pack . show $ prog'
-                        TIO.putStrLn . T.pack . show . evalClosedTerm $ prog'
+                        TIO.putStr . ppParens . ppTerm $ prog'
+                        TIO.putStrLn $ " : "
+                                    <> (ppType . checkClosedTerm $ prog')
+                        TIO.putStrLn . ppVal . evalClosedTerm $ prog'
       _ -> return ()
 
 readFromFile :: FilePath -> IO T.Text
