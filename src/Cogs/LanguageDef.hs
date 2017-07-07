@@ -31,6 +31,19 @@ data Language syn
   , evalLang   :: syn -> syn
   }
 
+data LanguageDef l
+  = LanguageDef
+  { lParse     :: Text -> Either Text l
+  , lPretty    :: l -> Text
+  , lTypeCheck :: l -> Either Text l
+  , lEvaluate  :: l -> l
+  , lCompile   :: l -> Text
+  }
+
+--------------------------------------------------------------------------------
+--                             LANGUAGES                                      --
+--------------------------------------------------------------------------------
+
 systemT :: Language (Either SyST.Type (Either SyST.Term SyST.Val))
 systemT
   = Language
@@ -81,7 +94,7 @@ dtlc
                          Right (Right v) -> DTLC.ppVal v
   , checkLang  = \p -> case p of
                          Left _ -> p
-                         Right (Left t) -> Left (DTLC.checkClosedTerm t)
+                         Right (Left t) -> undefined -- Left (DTLC.checkClosedTerm t)
                          Right (Right _) -> p
   , evalLang   = undefined
   }

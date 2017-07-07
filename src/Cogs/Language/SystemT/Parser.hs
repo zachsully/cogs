@@ -27,6 +27,7 @@ pTerm =
   chainl1 (whiteSpace' >>
             ( try pNat
               <|> pSucc
+              <|> pLet
               <|> pVar
               <|> pLam
               <|> pRec
@@ -49,12 +50,29 @@ pNat =
   <?> "nat"
 
 pSucc :: Parser Term
-pSucc = do
+pSucc =
   do { reserved "succ"
      ; whiteSpace
      ; t <- pTerm
      ; return (Succ t) }
   <?> "succ"
+
+-- sugar for lambda apply
+pLet :: Parser Term
+pLet =
+  do { (Var v) <- pVar
+     ; whiteSpace'
+     ; reserved ":"
+     ; whiteSpace'
+     ; ty <- pType
+     ; whiteSpace
+     ; reserved "="
+     ; whiteSpace
+     ; t1 <- pTerm
+     ; _ <- char '\n'
+     ; t2 <- pTerm
+     ; return (App (Lam v ty t2) t1) }
+  <?> "let"
 
 pLam :: Parser Term
 pLam =
