@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Cogs.Language.SystemT.Pretty where
 
+import Cogs.Common
 import Cogs.Language.SystemT.Syntax
 
 import Prelude hiding (unwords)
@@ -16,11 +17,13 @@ ppType (Fun ty1 ty2) = unwords [ppType ty1,"→",ppType ty2]
 
 ppTerm :: Term -> Text
 ppTerm Zero           = "zero"
-ppTerm (Succ t)       = unwords ["succ",ppTerm t]
+ppTerm (Succ Zero)    = unwords ["succ",ppTerm Zero]
+ppTerm (Succ t)       = unwords ["succ",ppParens (ppTerm t)]
 ppTerm (Var s)        = s
-ppTerm (Lam s ty t)   = "λ" <> s <> ":" <> ppType ty <> ". " <> ppTerm t
+ppTerm (Lam s ty t)   = "λ" <> s <> ":" <> ppType ty <> "." <+> ppTerm t
 ppTerm (App t1 t2)    = ppParens (ppTerm t1) <> " " <> ppTerm t2
-ppTerm (Rec t1 t2 t3) = undefined
+ppTerm (Rec t1 t2 t3) =   "rec" <+> ppTerm t1
+                      <+> "{" <+> ppTerm t2 <+> "|" <+> ppTerm t3 <+> "}"
 
 
 ppVal :: Val -> Text

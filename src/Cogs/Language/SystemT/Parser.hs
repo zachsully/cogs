@@ -20,6 +20,7 @@ pType =
           spaces
           ty2 <- pType
           return (Fun ty1 ty2))
+  <?> "type"
 
 pTerm :: Parser Term
 pTerm =
@@ -28,6 +29,7 @@ pTerm =
               <|> pSucc
               <|> pVar
               <|> pLam
+              <|> pRec
               <|> (parens pTerm)
               <?> "term"
             )
@@ -38,11 +40,13 @@ pVar :: Parser Term
 pVar = (Var . pack <$> identifier) <?> "var"
 
 pNat :: Parser Term
-pNat = do
-  n <- fromIntegral <$> natural
-  case n >= 0 of
-    True  -> return $ foldr (\s p -> s p) Zero (replicate n Succ)
-    False -> parserFail . unwords $ ["constant",show n,"isn't a natural."]
+pNat =
+  do { n <- fromIntegral <$> natural
+     ; case n >= 0 of
+         True  -> return $ foldr (\s p -> s p) Zero (replicate n Succ)
+         False -> parserFail . unwords $ ["constant",show n
+                                         ,"isn't a natural."] }
+  <?> "nat"
 
 pSucc :: Parser Term
 pSucc = do
@@ -50,10 +54,12 @@ pSucc = do
      ; whiteSpace
      ; t <- pTerm
      ; return (Succ t) }
+  <?> "succ"
 
 pLam :: Parser Term
 pLam =
   do { reserved "λ"
+     ; whiteSpace'
      ; (Var v) <- pVar
      ; whiteSpace'
      ; reserved ":"
@@ -66,21 +72,19 @@ pLam =
      ; return (Lam v ty t) }
   <?> "lam"
 
-pApp :: Parser Term
-pApp = do
-  t1 <- pTerm
-  whiteSpace'
-  t2 <- pTerm
-  return (App t1 t2)
-
 pRec :: Parser Term
-pRec = do
-  reserved "rec"
-  whiteSpace
-  t1 <- pTerm
-  whiteSpace
-  _ <- string "of"
-  t2 <- pTerm
-  _ <- char '|'
-  t3 <- pTerm
-  return (Rec t1 t2 t3)
+pRec =
+  do { reserved "rec"
+     ; whiteSpace
+     ; t1 <- pTerm
+     ; whiteSpace
+     ; _ <- string "{"
+     ; whiteSpace'
+     ; t2 <- pTerm
+     ; whiteSpace'
+     ; _ <- char '|'
+     ; whiteSpace'
+     ; t3 <- pTerm
+     ; whiteSpace'
+     ; return (Rec t1 t2 t3) }
+  <?> "rec"

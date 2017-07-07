@@ -1,6 +1,8 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Cogs.Common where
 
 import Control.Monad.Identity
+import Data.Monoid
 import Data.Text
 import Text.Parsec.Char
 import Text.Parsec.Prim
@@ -18,8 +20,10 @@ syntaxDef
   , Tok.commentEnd      = "-)"
   , Tok.commentLine     = "--"
   , Tok.nestedComments  = True
-  , Tok.identStart      = letter
-  , Tok.identLetter     = letter
+  , Tok.identStart      = satisfy (\c -> elem c ['a'..'z']
+                                      || elem c ['A'..'Z'])
+  , Tok.identLetter     = satisfy (\c -> elem c ['a'..'z']
+                                      || elem c ['A'..'Z'])
   , Tok.opStart         = oneOf ""
   , Tok.opLetter        = oneOf ""
   , Tok.reservedNames   = ["nat","λ","Λ","∀","∃","μ","Π","Σ"
@@ -49,3 +53,10 @@ identifier = Tok.identifier lexer
 
 natural :: Parser Integer
 natural = Tok.natural lexer
+
+--------------------------------------------------------------------------------
+--                                  PRETTY                                    --
+--------------------------------------------------------------------------------
+
+(<+>) :: Text -> Text -> Text
+a <+> b = a <> " " <> b
