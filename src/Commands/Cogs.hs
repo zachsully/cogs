@@ -56,6 +56,8 @@ runCogs =
      lift $ putStrLn $ "In " ++ show lang ++ ","
      case lang of
        SystemT -> runLanguage systemT
+       SystemF -> runLanguage systemF
+       DTLC    -> runLanguage dtlc
        _ -> error $ "unimplemented langauge: " ++ show lang
 
 runLanguage :: Language syn -> ReaderT Options IO ()

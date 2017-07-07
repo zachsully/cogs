@@ -15,6 +15,12 @@ import qualified Cogs.Language.SystemF.TypeCheck as SySF
 import qualified Cogs.Language.SystemF.Syntax    as SySF
 import qualified Cogs.Language.SystemF.Evaluate  as SySF
 
+import qualified Cogs.Language.DTLC.Pretty    as DTLC
+import qualified Cogs.Language.DTLC.Parser    as DTLC
+import qualified Cogs.Language.DTLC.TypeCheck as DTLC
+import qualified Cogs.Language.DTLC.Syntax    as DTLC
+import qualified Cogs.Language.DTLC.Evaluate  as DTLC
+
 import Data.Text (Text)
 
 data Language syn
@@ -63,4 +69,19 @@ systemF
                          Left _ -> p
                          Right (Left t) -> Right . Right $ SySF.evalClosedTerm t
                          Right (Right _) -> p
+  }
+
+dtlc :: Language (Either DTLC.Type (Either DTLC.Term DTLC.Val))
+dtlc
+  = Language
+  { parseLang  = undefined
+  , prettyLang = \p -> case p of
+                         Left ty -> DTLC.ppType ty
+                         Right (Left t) -> DTLC.ppTerm t
+                         Right (Right v) -> DTLC.ppVal v
+  , checkLang  = \p -> case p of
+                         Left _ -> p
+                         Right (Left t) -> Left (DTLC.checkClosedTerm t)
+                         Right (Right _) -> p
+  , evalLang   = undefined
   }

@@ -25,6 +25,7 @@ pTerm :: Parser Term
 pTerm =
   chainl1 (whiteSpace' >>
             ( try pNat
+              <|> pSucc
               <|> pVar
               <|> pLam
               <|> (parens pTerm)
@@ -42,6 +43,13 @@ pNat = do
   case n >= 0 of
     True  -> return $ foldr (\s p -> s p) Zero (replicate n Succ)
     False -> parserFail . unwords $ ["constant",show n,"isn't a natural."]
+
+pSucc :: Parser Term
+pSucc = do
+  do { reserved "succ"
+     ; whiteSpace
+     ; t <- pTerm
+     ; return (Succ t) }
 
 pLam :: Parser Term
 pLam =
