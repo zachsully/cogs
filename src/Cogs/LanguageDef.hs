@@ -21,7 +21,7 @@ import qualified Cogs.Language.DTLC.TypeCheck as DTLC
 import qualified Cogs.Language.DTLC.Syntax    as DTLC
 import qualified Cogs.Language.DTLC.Evaluate  as DTLC
 
-import Data.Text (Text)
+import Data.Text
 
 data Language syn
   = Language
@@ -56,7 +56,10 @@ systemT
                          Right (Right v) -> SyST.ppVal v
   , checkLang  = \p -> case p of
                          Left _ -> p
-                         Right (Left t) -> Left (SyST.checkClosedTerm t)
+                         Right (Left t) ->
+                           case SyST.checkClosedTerm t of
+                             Left err -> error $ unpack err
+                             Right ty -> Left ty
                          Right (Right _) -> p
   , evalLang   = \p -> case p of
                          Left _ -> p
@@ -74,10 +77,10 @@ systemF
                          Left ty -> SySF.ppType ty
                          Right (Left t) -> SySF.ppTerm t
                          Right (Right v) -> SySF.ppVal v
-  , checkLang  = \p -> case p of
-                         Left _ -> p
-                         Right (Left t) -> Left (SySF.checkClosedTerm t)
-                         Right (Right _) -> p
+  , checkLang  = \p -> case p of _ -> undefined
+                         -- Left _ -> p
+                         -- Right (Left t) -> Left (SySF.checkClosedTerm t)
+                         -- Right (Right _) -> p
   , evalLang   = \p -> case p of
                          Left _ -> p
                          Right (Left t) -> Right . Right $ SySF.evalClosedTerm t

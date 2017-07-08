@@ -24,17 +24,15 @@ pType =
 
 pTerm :: Parser Term
 pTerm =
-  chainl1 (whiteSpace' >>
-            ( try pNat
+  chainl1 ( whiteSpace' >>
+            ( try (parens pTerm)
+              <|> pNat
               <|> pSucc
-              <|> pLet
+              -- <|> pLam
+              -- <|> pRec
+              -- <|> pLet
               <|> pVar
-              <|> pLam
-              <|> pRec
-              <|> (parens pTerm)
-              <?> "term"
-            )
-          )
+              <?> "term" ))
           (return App)
 
 pVar :: Parser Term
@@ -60,14 +58,14 @@ pSucc =
 -- sugar for lambda apply
 pLet :: Parser Term
 pLet =
-  do { (Var v) <- pVar
+  do { v <- pack <$> identifier
      ; whiteSpace'
      ; reserved ":"
      ; whiteSpace'
      ; ty <- pType
-     ; whiteSpace
+     ; whiteSpace'
      ; reserved "="
-     ; whiteSpace
+     ; whiteSpace'
      ; t1 <- pTerm
      ; _ <- char '\n'
      ; t2 <- pTerm
@@ -78,7 +76,7 @@ pLam :: Parser Term
 pLam =
   do { reserved "λ"
      ; whiteSpace'
-     ; (Var v) <- pVar
+     ; v <- pack <$> identifier
      ; whiteSpace'
      ; reserved ":"
      ; whiteSpace'
