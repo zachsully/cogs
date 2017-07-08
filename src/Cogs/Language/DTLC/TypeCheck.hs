@@ -31,7 +31,7 @@ checkClosedTerm = check (Context [])
 check :: Context -> Term -> Either Text Type
 check = undefined
 
-infer :: Context -> Term -> Type
+infer :: Context -> Term -> Either Text Type
 infer = undefined
 
 subst :: Text -> Type -> Context -> Context

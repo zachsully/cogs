@@ -8,29 +8,29 @@ import Data.Text
 import Data.Monoid
 import Prelude hiding (unwords)
 
+data Context = Context [(Text,Type)]
+  deriving Show
+
+lookupContext :: Text -> Context -> Type
+lookupContext s (Context []) = error . unpack $ "unbound var: " <> s
+lookupContext s (Context ((s',t):rest)) = case s == s' of
+                                         True -> t
+                                         False -> lookupContext s (Context rest)
+
+extendContext :: Text -> Type -> Context -> Context
+extendContext s t (Context e) = Context ((s,t):e)
+
+checkClosedTerm :: Term -> Either TypeCheckError Type
+checkClosedTerm t = check (Context [])
+
 --------------------------------------------------------------------------------
 --                                  CHECK                                     --
 --------------------------------------------------------------------------------
 
-data TyEnv = TyEnv [(Text,Type)]
-  deriving Show
-
-lookupTyEnv :: Text -> TyEnv -> Type
-lookupTyEnv s (TyEnv []) = error . unpack $ "unbound var: " <> s
-lookupTyEnv s (TyEnv ((s',t):rest)) = case s == s' of
-                                         True -> t
-                                         False -> lookupTyEnv s (TyEnv rest)
-
-extendTyEnv :: Text -> Type -> TyEnv -> TyEnv
-extendTyEnv s t (TyEnv e) = TyEnv ((s,t):e)
-
-checkClosedTerm :: Term -> Type
-checkClosedTerm t = fst $ runState (check t) (TyEnv [])
-
 -- | System F's typechecker needs to keep track of the bindings of type
 --   variables to types and the bindings of the type parameters to type
 --   variables
-check :: Term -> State TyEnv Type
+check :: Context -> Term -> Either TypeCheckError Type
 check Zero = return Natural
 check (Succ t) =
   check t >>= \ty ->
@@ -38,10 +38,10 @@ check (Succ t) =
     Natural -> return Natural
     ty -> error $ "Succ : Natural -> Natural, given " ++ show ty
 
-check (Var s)  = lookupTyEnv s <$> get
+check (Var s)  = lookupContext s <$> get
 check (Lam s ty t) =
   do e <- get
-     put (extendTyEnv s ty e)
+     put (extendContext s ty e)
      codTy' <- check t
      return (Fun ty codTy')
 
@@ -54,7 +54,7 @@ check (App t1 t2) =
 
 check (BigLam s t) =
   do e <- get
-     put (extendTyEnv s (TyVar s) e)
+     put (extendContext s (TyVar s) e)
      ty <- check t
      return (Forall s ty)
 
@@ -70,15 +70,15 @@ check (TyApp t ty) =
 
 check t = error $ show t
 
-subst :: Text -> Type -> TyEnv -> TyEnv
-subst _ _  (TyEnv [])           = TyEnv []
-subst s ty (TyEnv ((s',ty'):e)) =
+subst :: Text -> Type -> Context -> Context
+subst _ _  (Context [])           = Context []
+subst s ty (Context ((s',ty'):e)) =
   let hd = case s == s' of
              True  -> (s,ty)
              False -> (s',ty')
-      tl = case subst s ty (TyEnv e) of
-             TyEnv e' -> e'
-  in TyEnv (hd:tl)
+      tl = case subst s ty (Context e) of
+             Context e' -> e'
+  in Context (hd:tl)
 
 unify :: Type -> Type -> Type
 unify Natural     Natural     = Natural

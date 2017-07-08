@@ -55,6 +55,8 @@ foo2 = Rec (Succ (Succ (Succ (Succ (Succ Zero)))))
            Zero
            (Lam "x" Natural (Lam "r" Natural (Var "r")))
 
+foo3 = App (Lam "x" Natural (Var "x")) (Lam "x" Natural (Var "x"))
+
 -- MACROS
 nat x = foldr (\s p -> s p) Zero (replicate x Succ)
 pred x = Rec x Zero (Lam "x" Natural (Lam "r" Natural (Var "x")))

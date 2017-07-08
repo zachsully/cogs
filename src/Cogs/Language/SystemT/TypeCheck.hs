@@ -1,72 +1,74 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Cogs.Language.SystemT.TypeCheck where
 
+import Cogs.Common
 import Cogs.Language.SystemT.Syntax
+import Cogs.Language.SystemT.Pretty
 
-import Prelude              hiding (pred,sum)
+import Prelude              hiding (pred,sum,unwords)
 import Data.Monoid
-import Data.Text            hiding (foldr,replicate,unwords)
-import Control.Monad.State
+import Data.Text            hiding (foldr,replicate)
+
+data Context = Context [(Text,Type)]
+  deriving Show
+
+lookupContext :: Text -> Context -> Type
+lookupContext s (Context []) = error $ unpack (pack "unbound var: " <> s)
+lookupContext s (Context ((s',t):rest)) = case s == s' of
+                                         True -> t
+                                         False -> lookupContext s (Context rest)
+
+extendContext :: Text -> Type -> Context -> Context
+extendContext s ty (Context e) = Context ((s,ty):e)
+
+checkClosedTerm :: Term -> Either TypeCheckError Type
+checkClosedTerm = check (Context [])
 
 --------------------------------------------------------------------------------
 --                                  CHECK                                     --
 --------------------------------------------------------------------------------
 
-data TyEnv = TyEnv [(Text,Type)]
-  deriving Show
+check :: Context -> Term -> Either TypeCheckError Type
+check c (Var s)  = Right (lookupContext s c)
+check _ Zero     = Right Natural
+check c (Succ t) =
+  case check c t of
+    Left err      -> Left err
+    Right Natural -> Right Natural
+    Right ty'     -> Left ("succ : nat -> nat, given " <> ppType ty')
 
-lookupTyEnv :: Text -> TyEnv -> Type
-lookupTyEnv s (TyEnv []) = error $ unpack (pack "unbound var: " <> s)
-lookupTyEnv s (TyEnv ((s',t):rest)) = case s == s' of
-                                         True -> t
-                                         False -> lookupTyEnv s (TyEnv rest)
+check c (Lam s domTy t) =
+  case check (extendContext s domTy c) t of
+    Left err    -> Left err
+    Right codTy -> return (Fun domTy codTy)
 
-extendTyEnv :: Text -> Type -> TyEnv -> TyEnv
-extendTyEnv s ty (TyEnv e) = TyEnv ((s,ty):e)
-
-checkClosedTerm :: Term -> Type
-checkClosedTerm t = fst $ runState (check t) (TyEnv [])
-
-check :: Term -> State TyEnv Type
-check (Var s)  = lookupTyEnv s <$> get
-check Zero     = return Natural
-check (Succ t) =
-  check t >>= \ty ->
-  case ty of
-    Natural -> return Natural
-    ty' -> error $ "Succ : Natural -> Natural, given " ++ show ty'
-
-check (Lam s domTy t) =
-  do e <- get
-     put (extendTyEnv s domTy e)
-     codTy <- check t
-     return (Fun domTy codTy)
-
-check (App t1 t2) =
-  check t1 >>= \ty1 ->
-  case ty1 of
-    Fun domTy codTy ->
-      check t2 >>= \ty2 ->
-      case domTy == ty2 of
-        True -> return codTy
-        False -> error $ unwords ["Application expects and argument of"
-                                 ,show domTy,", given",show ty2]
-    t -> error $ "Application requires a function, given " ++ show t
-
-check (Rec t1 t2 t3) =
-  check t1 >>= \ty1 ->
-  case ty1 of
-    Natural ->
-      check t2 >>= \ty2 ->
-      check t3 >>= \ty3 ->
-      case ty3 of
-        Fun Natural (Fun Natural domTy) ->
+check c (App t1 t2) =
+  case check c t1 of
+    Left err -> Left err
+    Right (Fun domTy codTy) ->
+      case check c t2 of
+        Left err -> Left err
+        Right ty2 ->
           case domTy == ty2 of
-            True -> return domTy
-            False -> error $ unwords ["Branches of rec must return the same type"
-                                     ,show ty2, "=/=",show domTy]
-        _ -> error $ unwords ["Rec requires that the second branch be"
-                             ,"Fun Natural (Fun Natura a),","given"
-                             ,show ty3]
-    t -> error $ unwords ["Rec requires a Natural for its first arg, given"
-                         ,show t]
+            True -> Right codTy
+            False -> Left (unwords ["Application expects and argument of"
+                                   ,ppType domTy,", given",ppType ty2])
+    Right ty1 -> Left ("Application requires a function, given " <> ppType ty1)
+
+check c (Rec t1 t2 t3) =
+  case check c t1 of
+    Left err -> Left err
+    Right Natural ->
+      case (check c t2, check c t3) of
+        (Left err, _) -> Left err
+        (_, Left err) -> Left err
+        (Right ty2, Right (Fun Natural (Fun Natural codTy3))) ->
+          case ty2 == codTy3 of
+            True -> Right ty2
+            False -> Left (unwords ["Branches of rec must return the same type"
+                                   ,ppType ty2, "=/=",ppType codTy3])
+        (_,Right ty3) -> Left (unwords ["Rec requires that the second branch be"
+                                       ,"Fun Natural (Fun Natura a),","given"
+                                       ,ppType ty3])
+    Right ty1 -> Left (unwords ["'rec' requires a Natural for its first arg, given"
+                               ,ppType ty1])
