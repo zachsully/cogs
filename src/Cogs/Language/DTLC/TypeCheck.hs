@@ -27,7 +27,6 @@ checkClosedTerm = check (Context [])
 --------------------------------------------------------------------------------
 {-                      A Bidirectional type checker                          -}
 
-
 check :: Context -> Term -> Either Text Type
 check = undefined
 
@@ -43,3 +42,9 @@ subst s ty (Context ((s',ty'):e)) =
       tl = case subst s ty (Context e) of
              Context e' -> e'
   in Context (hd:tl)
+
+--------------------------------------------------------------------------------
+--                                PROGRAMS                                    --
+--------------------------------------------------------------------------------
+
+foo0 = Lam "x" Natural Zero

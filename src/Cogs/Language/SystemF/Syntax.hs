@@ -2,7 +2,7 @@
 module Cogs.Language.SystemF.Syntax where
 
 import Data.Text
-import Data.Monoid       
+import Data.Monoid
 
 data Type
   = Natural
@@ -29,11 +29,11 @@ data Val
 data Env = Env [(Text,Term,Env)]
   deriving Show
 
-lookupEnv :: Text -> Env -> (Term,Env)  
+lookupEnv :: Text -> Env -> (Term,Env)
 lookupEnv s (Env []) = error . unpack $ "unbound var: " <> s
 lookupEnv s (Env ((s',x,e'):rest)) = case s == s' of
                                        True -> (x,e')
                                        False -> lookupEnv s (Env rest)
 
-extendEnv :: Text -> Term -> Env -> Env -> Env          
+extendEnv :: Text -> Term -> Env -> Env -> Env
 extendEnv s x e (Env e') = Env ((s,x,e):e')

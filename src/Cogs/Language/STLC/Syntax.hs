@@ -68,9 +68,14 @@ instance Functor Natural where
   fmap _ Zero     = Zero
   fmap f (Succ n) = Succ (f n)
 
--- instance Monad m => Eval Natural m where
---   evalAlgebra Zero     = return 0
---   evalAlgebra (Succ t) = return 0
+instance Pretty Natural where
+  prettyAlgebra Zero = "zero"
+  prettyAlgebra (Succ (In t)) = "succ (" <> prettyAlgebra t <> ")"
+
+instance Monad m => Eval Natural m where
+  evalAlgebra Zero     = return (Nat 0)
+  evalAlgebra (Succ t) = do { (Nat n) <- t
+                            ; return (Nat (n+1)) }
 
 -------------------
 data Lambda t = Lam t | Index Int | App t t
@@ -101,5 +106,8 @@ instance Pretty Lambda where
 foo0 :: Mu Natural
 foo0 = In Zero
 
-foo1 :: Mu Lambda
-foo1 = In (Lam (In (Index 0)))
+foo2 :: Mu Natural
+foo2 = In (Succ (In (Succ (In Zero))))
+
+-- foo1 :: Mu (Lambda :+: Natural)
+-- foo1 = In (Lam (In Zero))
