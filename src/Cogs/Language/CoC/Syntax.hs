@@ -29,6 +29,15 @@ data Expr =
 
 type Context = [(Text,Expr)]
 
+-- Check that the context is well formed, that is, it only contains types     
+ok :: Context -> Bool
+ok [] = True
+ok ((_,e):ctx) =
+  case e of
+    Pi _ _ _ -> ok ctx
+    Natural -> ok ctx
+    _ -> False
+
 check :: Context -> Expr -> Either Text Expr
 check ctx Zero = Right Natural
 check ctx (Succ e) =
