@@ -33,6 +33,13 @@ library
                        Cogs.Language.SystemF.TypeCheck,
                        Cogs.Language.SystemF.Evaluate,
 
+                       Cogs.Language.SystemFJ.Syntax,
+                       -- Cogs.Language.SystemF.Pretty,
+                       -- Cogs.Language.SystemF.Parser,
+                       -- Cogs.Language.SystemF.TypeCheck,
+                       -- Cogs.Language.SystemF.Evaluate,
+
+
                        Cogs.Language.DTLC.Syntax
                        Cogs.Language.DTLC.Pretty,
                        Cogs.Language.DTLC.Parser,
