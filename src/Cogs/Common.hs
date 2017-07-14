@@ -41,7 +41,6 @@ whiteSpace = Tok.whiteSpace lexer
 whiteSpace' :: Parser ()
 whiteSpace' = whiteSpace <|> return ()
 
-
 parens :: Parser a -> Parser a
 parens = Tok.parens lexer
 

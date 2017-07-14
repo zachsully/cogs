@@ -23,17 +23,17 @@ pType =
   <?> "type"
 
 pTerm :: Parser Term
-pTerm =
-  chainl1 ( whiteSpace' >>
-            ( try (parens pTerm)
-              <|> pNat
-              <|> pSucc
-              -- <|> pLam
-              -- <|> pRec
-              -- <|> pLet
-              <|> pVar
-              <?> "term" ))
-          (return App)
+pTerm = whiteSpace' >>
+  (try (chainl1 (try (parens pLam)
+                 <|> pVar
+                 <?> "left-hand-side")
+                 (return App))
+   <|> (parens pTerm)
+   <|> pVar
+   <|> pLam
+   <|> pRec
+   <|> pNat
+   <|> pSucc)
 
 pVar :: Parser Term
 pVar = (Var . pack <$> identifier) <?> "var"
