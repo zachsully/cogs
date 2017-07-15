@@ -33,6 +33,7 @@ instance Show LanguageTag where
   show CoC          = "λΠω2"
 
 getLang :: FilePath -> IO LanguageTag
+getLang "-" = return SystemT
 getLang fp =
   withFile fp ReadMode $ \h ->
   T.hGetLine h >>= \l ->

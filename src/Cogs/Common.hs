@@ -35,6 +35,9 @@ syntaxDef
 lexer :: Tok.GenTokenParser Text () Identity
 lexer = Tok.makeTokenParser syntaxDef
 
+tok :: Parser a -> Parser a
+tok = Tok.lexeme lexer
+
 whiteSpace :: Parser ()
 whiteSpace = Tok.whiteSpace lexer
 
@@ -45,13 +48,19 @@ parens :: Parser a -> Parser a
 parens = Tok.parens lexer
 
 reserved :: String -> Parser ()
-reserved = Tok.reserved lexer
+reserved = tok . Tok.reserved lexer
+
+reserved' :: String -> Parser ()
+reserved' = Tok.reserved lexer
 
 identifier :: Parser String
-identifier = Tok.identifier lexer
+identifier = tok (Tok.identifier lexer)
+
+identifier' :: Parser String
+identifier' = Tok.identifier lexer
 
 natural :: Parser Integer
-natural = Tok.natural lexer
+natural = tok (Tok.natural lexer)
 
 --------------------------------------------------------------------------------
 --                                  PRETTY                                    --
