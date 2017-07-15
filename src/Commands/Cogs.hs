@@ -18,6 +18,7 @@ module Main where
 import System.IO
 
 import Cogs.Preprocessor
+import Cogs.Common
 import Cogs.LanguageDef
 
 import Control.Monad.Reader
@@ -52,13 +53,22 @@ parseOpts = execParser $ info (helper <*> options)
 runCogs :: ReaderT Options IO ()
 runCogs =
   ask >>= \opts ->
-  do lang <- lift (getLang (input opts))
-     lift $ putStrLn $ "In " ++ show lang ++ ","
-     case lang of
-       SystemT -> runLanguage systemT
-       SystemF -> runLanguage systemF
-       DTLC    -> runLanguage dtlc
-       _ -> error $ "unimplemented langauge: " ++ show lang
+  case debug opts of
+    True -> lift $
+      do { prog <- readFromFile (input opts)
+         ; case parseExpr prog of
+             Left err -> putStrLn . show $ err
+             Right expr -> putStrLn . show $ expr
+         }
+    False ->
+      do { lang <- lift (getLang (input opts))
+         ; lift $ putStrLn $ "In " ++ show lang ++ ","
+         ; case lang of
+             SystemT -> runLanguage systemT
+             SystemF -> runLanguage systemF
+             DTLC    -> runLanguage dtlc
+             _ -> error $ "unimplemented langauge: " ++ show lang
+         }
 
 runLanguage :: Language syn -> ReaderT Options IO ()
 runLanguage lang =
