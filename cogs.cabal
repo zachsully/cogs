@@ -19,6 +19,8 @@ library
                        Cogs.Preprocessor,
                        Cogs.LanguageDef,
 
+                       Cogs.Instruction.X86,
+
                        Cogs.Language.STLC.Syntax,
 
                        Cogs.Language.SystemT.Syntax,
