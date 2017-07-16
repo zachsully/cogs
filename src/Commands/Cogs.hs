@@ -57,7 +57,7 @@ runCogs =
     True -> lift $
       do { prog <- readFromFile (input opts)
          ; case parseExpr prog of
-             Left err -> putStrLn . show $ err
+             Left err -> TIO.putStrLn err
              Right expr -> putStrLn . show $ expr
          }
     False ->

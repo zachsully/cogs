@@ -21,7 +21,9 @@ parseExpr p =
     Right r -> Right r
 
 data Expr
-  = Var_ Text
+  = Nat_ Integer
+  | Var_ Text
+  | TyNat_
   | Arrow_ Expr Expr
   | Exists_ Expr Expr
   | Forall_ Expr Expr
@@ -35,31 +37,93 @@ data Expr
 
 pExpr :: Parser Expr
 pExpr =
-  try pArrow_
-  -- <|> pVar_
-  <|> (pComment >> pExpr)
-  <|> (pWhiteSpace >> pExpr)
-
-pVar_ :: Parser Expr
-pVar_ =
-  do { v <- pack <$> many1 (oneOf (['a'..'z'] ++ ['A'..'Z']))
-     ; return (Var_ v) }
-
-pArrow_ :: Parser Expr
-pArrow_ =
-  chainl1 pVar_ (do { pWhiteSpace
-                    ; _ <- char '\8594'
-                    ; pWhiteSpace
-                    ; return Arrow_ })
+  try ((pComment >> pExpr) <* pWhiteSpace)
+  <|> pLeftRec
+  <?> "expr"
 
 pWhiteSpace :: Parser ()
-pWhiteSpace = many (oneOf [' ','\n','\t']) >> return ()
+pWhiteSpace = many (oneOf " \n\t") >> return ()
 
 pComment :: Parser ()
 pComment =
   do { _ <- string "(-"
      ; _ <- manyTill anyChar (try (string "-)"))
      ; return () }
+  <* pWhiteSpace
+
+pParens :: Parser a -> Parser a
+pParens p =
+  do { _ <- char '('
+     ; p' <- p
+     ; _ <- char ')'
+     ; return p' }
+
+------------------------------
+pNonLeftRec :: Parser Expr
+pNonLeftRec =
+  try pBinders
+  <|> pNat_
+  <|> pTyNat_
+  <|> pVar_
+  <|> ((pParens pExpr) <* pWhiteSpace)
+  <?> "atomic expr"
+
+pVar_ :: Parser Expr
+pVar_ = Var_ . pack <$> many1 (oneOf (['a'..'z'] ++ ['A'..'Z'])) <* pWhiteSpace
+
+pNat_ :: Parser Expr
+pNat_ = Nat_ . read <$> many1 digit <* pWhiteSpace
+
+pTyNat_ :: Parser Expr
+pTyNat_ = const TyNat_ <$> string "nat" <* pWhiteSpace
+
+pBinders :: Parser Expr
+pBinders =
+  do { sym <- oneOf ['\955'  -- little lambda
+                    ,'\923'  -- big lambda
+                    ,'\931'  -- big sigma
+                    ,'\928'  -- big pi
+                    ,'\8707' -- exists
+                    ,'\8704' -- forall
+                    ]
+     ; bind <- pExpr
+     ; _ <- char '.'
+     ; pWhiteSpace
+     ; expr <- pExpr
+     ; return $ (case sym of
+                  '\955'  -> Lam_
+                  '\923'  -> BigLam_
+                  '\931'  -> Sigma_
+                  '\928'  -> Pi_
+                  '\8707' -> Exists_
+                  '\8704' -> Forall_) bind expr }
+
+
+------------------------------
+pLeftRec :: Parser Expr
+pLeftRec =
+  chainl1 pNonLeftRec
+    (try pArrow_
+     <|> pAnn_
+     <|> pApp_
+     <?> "left recursive expr")
+
+pArrow_ :: Parser (Expr -> Expr -> Expr)
+pArrow_ =
+  do { pWhiteSpace
+     ; _ <- char '\8594'
+     ; pWhiteSpace
+     ; return Arrow_ }
+
+pAnn_ :: Parser (Expr -> Expr -> Expr)
+pAnn_ =
+  do { pWhiteSpace
+     ; _ <- char ':'
+     ; pWhiteSpace
+     ; return Ann_ }
+
+pApp_ :: Parser (Expr -> Expr -> Expr)
+pApp_ = pWhiteSpace >> return App_
 
 --------------------------------------------------------------------------------
 --                                 PARSING                                    --
