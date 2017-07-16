@@ -24,6 +24,8 @@ data Expr
   = Nat_ Integer
   | Var_ Text
   | TyNat_
+  | KStar_
+  | KHash_
   | Arrow_ Expr Expr
   | Exists_ Expr Expr
   | Forall_ Expr Expr
@@ -63,6 +65,8 @@ pNonLeftRec :: Parser Expr
 pNonLeftRec =
   try pBinders
   <|> pNat_
+  <|> pKHash_
+  <|> pKStar_
   <|> pTyNat_
   <|> pVar_
   <|> ((pParens pExpr) <* pWhiteSpace)
@@ -76,6 +80,12 @@ pNat_ = Nat_ . read <$> many1 digit <* pWhiteSpace
 
 pTyNat_ :: Parser Expr
 pTyNat_ = const TyNat_ <$> string "nat" <* pWhiteSpace
+
+pKHash_ :: Parser Expr
+pKHash_ = const KHash_ <$> char '#' <* pWhiteSpace
+
+pKStar_ :: Parser Expr
+pKStar_ = const KStar_ <$> char '*' <* pWhiteSpace
 
 pBinders :: Parser Expr
 pBinders =
