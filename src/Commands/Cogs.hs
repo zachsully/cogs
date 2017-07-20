@@ -27,11 +27,12 @@ import qualified Data.Text    as T
 import qualified Data.Text.IO as TIO
 import Options.Applicative
 
-data Options =
-  Options { debug    :: Bool
-          , input    :: String
-          , output   :: Maybe String
-          } deriving Show
+data Options
+  = Options
+  { debug    :: Bool
+  , input    :: String
+  , output   :: Maybe String
+  } deriving Show
 
 main :: IO ()
 main = parseOpts >>= runReaderT runCogs
@@ -66,7 +67,6 @@ runCogs =
          ; case lang of
              SystemT -> runLanguage systemT
              SystemF -> runLanguage systemF
-             DTLC    -> runLanguage dtlc
              _ -> error $ "unimplemented langauge: " ++ show lang
          }
 

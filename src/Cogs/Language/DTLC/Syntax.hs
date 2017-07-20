@@ -13,33 +13,39 @@ import Data.Monoid
     -- better error messages?
 -}
 
-data Type
-  = Natural
-  | TyVar Text
-  | Pi Text Type Type
-  deriving (Show, Eq)
-
-data Term
-  = Zero
-  | Succ Term
+data Expr =
+  -- sorts
+    Box
+  -- kinds
+  | Star
+  -- types
+  | Natural
+  | Expr :-> Expr
+  | Product Expr Expr
+  | Pi Text Expr Expr
+  -- terms
   | Var Text
-  | Lam Text Type Term
-  | App Term Term
-  deriving (Show, Eq)
+  | Lam Text Expr Expr
+  | App Expr Expr
+  | Pair Expr Expr
+  | Fst Expr
+  | Snd Expr
+  | Nat Int
+  deriving (Show,Eq)
 
 data Val
-  = Nat Term
-  | Closure Text Term Env
+  = VNat Int
+  | VClosure Text Expr Env
   deriving Show
 
-data Env = Env [(Text,Term,Env)]
+data Env = Env [(Text,Expr,Env)]
   deriving Show
 
-lookupEnv :: Text -> Env -> (Term,Env)
+lookupEnv :: Text -> Env -> (Expr,Env)
 lookupEnv s (Env []) = error . unpack $ "unbound var: " <> s
 lookupEnv s (Env ((s',x,e'):rest)) = case s == s' of
                                        True -> (x,e')
                                        False -> lookupEnv s (Env rest)
 
-extendEnv :: Text -> Term -> Env -> Env -> Env
+extendEnv :: Text -> Expr -> Env -> Env -> Env
 extendEnv s x e (Env e') = Env ((s,x,e):e')
