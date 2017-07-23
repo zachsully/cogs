@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Cogs.Language.SystemT.TypeCheck where
 
-import Cogs.Common
 import Cogs.Language.SystemT.Syntax
 import Cogs.Language.SystemT.Pretty
 
@@ -21,14 +20,14 @@ lookupContext s (Context ((s',t):rest)) = case s == s' of
 extendContext :: Text -> Type -> Context -> Context
 extendContext s ty (Context e) = Context ((s,ty):e)
 
-checkClosedTerm :: Term -> Either TypeCheckError Type
+checkClosedTerm :: Term -> Either Text Type
 checkClosedTerm = check (Context [])
 
 --------------------------------------------------------------------------------
 --                                  CHECK                                     --
 --------------------------------------------------------------------------------
 
-check :: Context -> Term -> Either TypeCheckError Type
+check :: Context -> Term -> Either Text Type
 check c (Var s)  = Right (lookupContext s c)
 check _ Zero     = Right Natural
 check c (Succ t) =

@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Cogs.Language.SystemT.Pretty where
 
-import Cogs.Common
+import Cogs.Language.Common.Pretty
 import Cogs.Language.SystemT.Syntax
 
 import Prelude hiding (unwords)

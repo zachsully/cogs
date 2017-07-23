@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Cogs.Language.SystemF.TypeCheck where
 
-import Cogs.Common
+import Cogs.Language.Common.Syntax
 import Cogs.Language.SystemF.Syntax
 
 import Control.Monad.State
@@ -21,7 +21,7 @@ lookupContext s (Context ((s',t):rest)) = case s == s' of
 extendContext :: Text -> Type -> Context -> Context
 extendContext s t (Context e) = Context ((s,t):e)
 
-checkClosedTerm :: Term -> Either TypeCheckError Type
+checkClosedTerm :: Term -> Either Text Type
 checkClosedTerm = check (Context [])
 
 --------------------------------------------------------------------------------
@@ -31,7 +31,7 @@ checkClosedTerm = check (Context [])
 -- | System F's typechecker needs to keep track of the bindings of type
 --   variables to types and the bindings of the type parameters to type
 --   variables
-check :: Context -> Term -> Either TypeCheckError Type
+check :: Context -> Term -> Either Text Type
 check = undefined
 -- check Zero = return Natural
 -- check (Succ t) =

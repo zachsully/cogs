@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Cogs.Common where
+module Cogs.Language.Common.Parser where
 
 import Control.Monad.Identity
 import Data.Monoid
@@ -8,7 +8,6 @@ import Text.Parsec.Char
 import Text.Parsec.Prim
 import Text.Parsec.Text
 import Text.Parsec.Combinator
-import qualified Text.Parsec.Token as Tok
 
 --------------------------------------------------------------------------------
 --                               AST MAXIMUM                                  --
@@ -33,6 +32,7 @@ data Expr
   | Sigma_ Expr Expr
   | Lam_ Expr Expr
   | BigLam_ Expr Expr
+  | Binder_ Text Expr Expr
   | Ann_ Expr Expr
   | App_ Expr Expr
   deriving (Show,Eq)
@@ -74,6 +74,9 @@ pNonLeftRec =
 
 pVar_ :: Parser Expr
 pVar_ = Var_ . pack <$> many1 (oneOf (['a'..'z'] ++ ['A'..'Z'])) <* pWhiteSpace
+
+pBinderVar_ :: Parser Expr
+pBinderVar_ = Var_ . pack <$> many1 (oneOf []) <* pWhiteSpace
 
 pNat_ :: Parser Expr
 pNat_ = Nat_ . read <$> many1 digit <* pWhiteSpace
@@ -134,69 +137,3 @@ pAnn_ =
 
 pApp_ :: Parser (Expr -> Expr -> Expr)
 pApp_ = pWhiteSpace >> return App_
-
---------------------------------------------------------------------------------
---                                 PARSING                                    --
---------------------------------------------------------------------------------
-
-syntaxDef :: Tok.GenLanguageDef Text () Identity
-syntaxDef
-  = Tok.LanguageDef
-  { Tok.commentStart    = "(-"
-  , Tok.commentEnd      = "-)"
-  , Tok.commentLine     = "--"
-  , Tok.nestedComments  = True
-  , Tok.identStart      = satisfy (\c -> elem c ['a'..'z']
-                                      || elem c ['A'..'Z'])
-  , Tok.identLetter     = satisfy (\c -> elem c ['a'..'z']
-                                      || elem c ['A'..'Z'])
-  , Tok.opStart         = oneOf ""
-  , Tok.opLetter        = oneOf ""
-  , Tok.reservedNames   = ["nat","λ","Λ","∀","∃","μ","Π","Σ"
-                          ,"#","*",":",".","→","rec","="]
-  , Tok.reservedOpNames = []
-  , Tok.caseSensitive   = True
-  }
-
-lexer :: Tok.GenTokenParser Text () Identity
-lexer = Tok.makeTokenParser syntaxDef
-
-tok :: Parser a -> Parser a
-tok = Tok.lexeme lexer
-
-whiteSpace :: Parser ()
-whiteSpace = Tok.whiteSpace lexer
-
-whiteSpace' :: Parser ()
-whiteSpace' = whiteSpace <|> return ()
-
-parens :: Parser a -> Parser a
-parens = Tok.parens lexer
-
-reserved :: String -> Parser ()
-reserved = tok . Tok.reserved lexer
-
-reserved' :: String -> Parser ()
-reserved' = Tok.reserved lexer
-
-identifier :: Parser String
-identifier = tok (Tok.identifier lexer)
-
-identifier' :: Parser String
-identifier' = Tok.identifier lexer
-
-natural :: Parser Integer
-natural = tok (Tok.natural lexer)
-
---------------------------------------------------------------------------------
---                                  PRETTY                                    --
---------------------------------------------------------------------------------
-
-(<+>) :: Text -> Text -> Text
-a <+> b = a <> " " <> b
-
---------------------------------------------------------------------------------
---                               TYPECHECKER                                  --
---------------------------------------------------------------------------------
-
-type TypeCheckError = Text

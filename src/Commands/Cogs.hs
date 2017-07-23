@@ -18,7 +18,6 @@ module Main where
 import System.IO
 
 import Cogs.Preprocessor
-import Cogs.Common
 import Cogs.LanguageDef
 
 import Control.Monad.Reader
@@ -57,9 +56,10 @@ runCogs =
   case debug opts of
     True -> lift $
       do { prog <- readFromFile (input opts)
-         ; case parseExpr prog of
-             Left err -> TIO.putStrLn err
-             Right expr -> putStrLn . show $ expr
+         -- ; case undefined prog of
+         --     Left err -> TIO.putStrLn err
+         --     Right expr -> putStrLn . show $ expr
+         ; return ()
          }
     False ->
       do { lang <- lift (getLang (input opts))

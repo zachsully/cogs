@@ -15,32 +15,22 @@ cabal-version:       >=1.10
 library
   GHC-Options :       -Wall -j6
   exposed-modules:
-                       Cogs.Common,
                        Cogs.Preprocessor,
                        Cogs.LanguageDef,
                        Cogs.Instruction.X86,
+                       Cogs.Language.Common.Syntax,
+                       Cogs.Language.Common.Parser,
+                       Cogs.Language.Common.Pretty,
                        Cogs.Language.STLC.Syntax,
                        Cogs.Language.LambdaOmega.Syntax,
                        Cogs.Language.SystemT.Syntax,
-                       Cogs.Language.SystemT.Pretty,
-                       Cogs.Language.SystemT.Parser,
                        Cogs.Language.SystemT.TypeCheck,
                        Cogs.Language.SystemT.Evaluate,
                        Cogs.Language.SystemF.Syntax,
-                       Cogs.Language.SystemF.Pretty,
-                       Cogs.Language.SystemF.Parser,
                        Cogs.Language.SystemF.TypeCheck,
                        Cogs.Language.SystemF.Evaluate,
                        Cogs.Language.SystemFJ.Syntax,
-                       -- Cogs.Language.SystemF.Pretty,
-                       -- Cogs.Language.SystemF.Parser,
-                       -- Cogs.Language.SystemF.TypeCheck,
-                       -- Cogs.Language.SystemF.Evaluate,
                        Cogs.Language.DTLC.Syntax
-                       -- Cogs.Language.DTLC.Pretty,
-                       -- Cogs.Language.DTLC.Parser,
-                       -- Cogs.Language.DTLC.TypeCheck,
-                       -- Cogs.Language.DTLC.Evaluate
 
   build-depends:       base                 >= 4.8,
                        parsec               >= 3.1,
