@@ -15,6 +15,7 @@ data Expr
   | KHash_
   | Arrow_ Expr Expr
   | Binder_ Text Expr Expr
+  | Branching_ Text Expr [Expr]
   | Ann_ Expr Expr
   | App_ Expr Expr
   deriving (Show,Eq)

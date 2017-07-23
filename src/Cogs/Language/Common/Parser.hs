@@ -48,6 +48,7 @@ pParens p =
 pNonLeftRec :: Parser Expr
 pNonLeftRec =
   try pBinders
+  <|> pBranching
   <|> pNat_
   <|> pKHash_
   <|> pKStar_
@@ -83,6 +84,27 @@ pBinders =
      ; pWhiteSpace
      ; expr <- pExpr
      ; return $ Binder_ (pack [sym]) bind expr }
+
+pBranching :: Parser Expr
+pBranching =
+  do { keyword <- string "rec" <|> string "case"
+     ; pWhiteSpace
+     ; focus <- pExpr
+     ; _ <- char '{' <* pWhiteSpace
+     ; branches <- pBranches
+     ; _ <- char '}' <* pWhiteSpace
+     ; return $ Branching_ (pack keyword) focus branches }
+  <?> "branching"
+  where pBranches :: Parser [Expr]
+        pBranches =
+          try (do { e <- pExpr
+                  ; _ <- char '|'
+                  ; pWhiteSpace
+                  ; es <- pBranches
+                  ; return (e:es) })
+          <|> ((:[]) <$> pExpr)
+          <|> (return [])
+          <?> "branches"
 
 
 ------------------------------
