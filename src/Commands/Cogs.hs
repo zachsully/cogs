@@ -19,6 +19,10 @@ import System.IO
 
 import Cogs.Preprocessor
 import Cogs.Language.Common.Parser
+import Cogs.Language.Common.Pretty
+import Cogs.Language.Common.Syntax
+import Cogs.Language.SystemT.Syntax
+import Cogs.Language.SystemT.Evaluate
 
 import Control.Monad.Reader
 import Data.Monoid
@@ -56,7 +60,21 @@ runCogs =
     do { prog <- readFromFile (input opts)
        ; case parseExpr prog of
            Left err -> TIO.putStrLn err
-           Right expr -> TIO.putStrLn . T.pack . show $ expr
+           Right expr ->
+             do { TIO.putStrLn . T.pack . show $ expr
+                ; TIO.putStrLn "\n*********** Common AST ***********\n"
+                ; TIO.putStrLn . T.pack . show $ expr
+                ; TIO.putStrLn "\n*********** SystemT AST ***********\n"
+                ; case (from :: Expr -> Maybe Term) expr of
+                    Nothing -> TIO.putStrLn "cannot parse"
+                    Just expr' ->
+                      do { TIO.putStrLn . T.pack . show $ expr'
+                         ; let expr'' = evalClosedTerm expr'
+                         ; TIO.putStrLn "\n*********** Common AST ***********\n"
+                         ; let expr''' = (to :: Val -> Expr) expr''
+                         ; TIO.putStrLn . ppExpr $ expr'''
+                         }
+                }
        }
 
 readFromFile :: FilePath -> IO T.Text
