@@ -111,10 +111,20 @@ pBranching =
 pLeftRec :: Parser Expr
 pLeftRec =
   chainl1 pNonLeftRec
-    (try pArrow_
+    (try pLet_
+     <|> pArrow_
      <|> pAnn_
      <|> pApp_
      <?> "left recursive expr")
+
+pLet_ :: Parser (Expr -> Expr -> Expr)
+pLet_ =
+  do { pWhiteSpace
+     ; _ <- char '='
+     ; pWhiteSpace
+     ; e <- pExpr
+     ; _ <- char '\n'
+     ; return (\a b -> App_ (Binder_ "unknown" a b) e) }
 
 pArrow_ :: Parser (Expr -> Expr -> Expr)
 pArrow_ =
