@@ -19,10 +19,13 @@ data Expr
   | Natural
   | Expr :-> Expr
   | Product Expr Expr
-  -- terms
+
+  -- types or terms
   | Var Text
   | Lam Expr Expr
   | App Expr Expr
+
+  -- terms
   | Pair Expr Expr
   | Fst Expr
   | Snd Expr
@@ -32,24 +35,30 @@ data Expr
 eshow :: Expr -> Text
 eshow = pack . show
 
+data Class = Sort | Kind | Type | Term deriving (Show,Eq)
 
-isType :: Context -> Expr -> Bool
-isType c e =
-  case e of
-    -- (Var _) -> Nothing
-    -- (Lam _ _) -> Nothing
-    -- (App _ _) -> Nothing
-    Natural -> True
-    (e' :-> _) -> isType c e
-    (Product _ _) -> True
-    _ -> False
+classOf :: Context -> Expr -> Class
+classOf c Box = Sort
+classOf c Star = Kind
+classOf c Natural = Type
+classOf c (e :-> _) = classOf c e
+classOf c (Product _ _) = Type
+classOf c (Var v) = case lookup v c of
+                      Nothing -> error $ "classOf: unbound " <> show v
+                      Just e -> classOf c e
+classOf c (Lam (Ann (Var v) t) e) = classOf ((v,t):c) e
+classOf c (App e0 e1) =
+  case e0 of
+    Lam (Ann (Var v) _) e0' -> classOf ((v,e1):c) e0'
+    _ -> error $ "ill formed: " <> show e0
+classOf _ (Pair _ _) = Term
+classOf _ (Fst _) = Term
+classOf _ (Snd _) = Term
+classOf _ (Nat _) = Term
+classOf c (Ann e _) = classOf c e
 
-isKind :: Expr -> Bool
-isKind e =
-  case e of
-    Star -> True
-    (Star :-> _) -> True
-    _ -> False
+isKind = (== Kind) . classOf []
+isType c e = (classOf c e) == Type
 
 type Context = [(Text,Expr)]
 
@@ -92,6 +101,7 @@ infer c (Var v) =
     Nothing -> Left "unbound var"
     Just e -> Right e
 
+-- only accept annotated lambda
 infer c (Lam e0 e1) =
   case e0 of
     (Var v) -> Left $ "cannot deduce type of " <> v
@@ -148,19 +158,23 @@ check c e ty =
 -- Beta reduce types
 -- this implements the conversion rule
 normalizeTypes :: Context -> Expr -> Expr
-normalizeTypes _ Box = Box
-normalizeTypes _ Star = Star
-normalizeTypes _ Natural = Natural
-normalizeTypes c (e0 :-> e1) = (normalizeTypes c e0) :-> (normalizeTypes c e1)
-normalizeTypes c (Product e0 e1) = Product (normalizeTypes c e0)
-                                           (normalizeTypes c e1)
-normalizeTypes c (Var v) = undefined
-normalizeTypes c (Lam e0 e1) = undefined
-normalizeTypes c (App e0 e1) = undefined
-normalizeTypes c (Pair e0 e1) = Pair (normalizeTypes c e0) (normalizeTypes c e1)
-normalizeTypes c (Fst e) = Fst (normalizeTypes c e)
-normalizeTypes c (Snd e) = Snd (normalizeTypes c e)
-normalizeTypes _ (Nat i) = Nat i
+normalizeTypes c e =
+  case isType c e of
+    False -> e
+    True ->
+      case e of
+        Natural -> Natural
+        (e0 :-> e1) -> (normalizeTypes c e0) :-> (normalizeTypes c e1)
+        (Product e0 e1) -> Product (normalizeTypes c e0) (normalizeTypes c e1)
+        (Var v) -> case lookup v c of
+                     Nothing -> error $ "normalizeTypes: unbound " <> show v
+                     Just e -> normalizeTypes c e
+        (Lam b e) -> Lam b (normalizeTypes c e)
+        (App e0 e1) ->
+          case e0 of
+            Lam (Ann (Var v) _) e0' -> normalizeTypes ((v,e1):c) e0'
+            _ -> error $ "ill formed: " <> show e0
+
 
 --------------------------------------------------------------------------------
 --                                  TESTS                                     --
@@ -182,6 +196,12 @@ foo10 = App (Lam (Var "x") (Product (Var "x") Natural)) Natural
 foo11 = Lam (Ann (Var "y") (App (Lam (Ann (Var "x") Star)
                                      (Product (Var "x") Natural))
                                 Natural))
-            (Var "y")
+            Natural
 foo12 = Fst (Nat 42)
 foo13 = Fst (Lam (Ann (Var "f") Natural) (Nat 42)) -- should fail
+
+-- polymorphic product constructor
+foo14 = Lam (Ann (Var "fst") Star)
+            (Lam (Ann (Var "snd") Star)
+                 (Product (Var "fst") (Var "snd")))
+foo15 = App (App foo14 Natural) Natural
