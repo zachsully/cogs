@@ -30,7 +30,8 @@ library
                        Cogs.Language.SystemF.TypeCheck,
                        Cogs.Language.SystemF.Evaluate,
                        Cogs.Language.SystemFJ.Syntax,
-                       Cogs.Language.DTLC.Syntax
+                       Cogs.Language.DTLC.Syntax,
+                       Cogs.Language.CalculusOfUnity.Syntax
 
   build-depends:       base                 >= 4.8,
                        parsec               >= 3.1,
